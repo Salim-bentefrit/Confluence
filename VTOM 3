@@ -1,0 +1,56 @@
+CERTIFICATE_PATH="/appli/${ENV}/dzv/conf/certificate_orion.pem"
+
+job()
+{
+    RC=0
+
+    if [ ! -r "${CERTIFICATE_PATH}" ]
+    then
+        echo "ERREUR : certificat introuvable ou illisible : ${CERTIFICATE_PATH}"
+        return 23
+    fi
+
+    for BANKID in ${BANKIDS}
+    do
+        REP_BANK="${REP_TRANS_OUT}/${BANKID}"
+
+        echo "Recherche du ZIP dans ${REP_BANK}"
+
+        ZIP_FILE=$(find "${REP_BANK}" \
+            -maxdepth 1 \
+            -type f \
+            -name "extract_${BANKID}_*.zip" \
+            -print | sort | tail -1)
+
+        if [ -z "${ZIP_FILE}" ]
+        then
+            echo "ERREUR : aucun fichier extract_${BANKID}_*.zip trouvé"
+            RC=23
+            continue
+        fi
+
+        echo "ZIP trouvé : ${ZIP_FILE}"
+
+        ENCRYPTED_FILE="${ZIP_FILE%.zip}_encrypted.zip"
+
+        rm -f "${ENCRYPTED_FILE}"
+
+        pkzipc -add \
+            -recipient="${CERTIFICATE_PATH}" \
+            "${ENCRYPTED_FILE}" \
+            "${ZIP_FILE}"
+
+        RETOUR=$?
+
+        if [ ${RETOUR} -ne 0 ]
+        then
+            echo "ERREUR chiffrement X.509 PKZIP pour ${ZIP_FILE}"
+            RC=23
+            continue
+        fi
+
+        echo "Fichier chiffré créé : ${ENCRYPTED_FILE}"
+    done
+
+    return ${RC}
+}

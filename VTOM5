@@ -1,0 +1,70 @@
+job()
+{
+    RC=0
+
+    for BANKID in ${BANKIDS}
+    do
+        REP_BANK="${REP_TRANS_OUT}/${BANKID}"
+
+        commentaire "Traitement CFT pour BANKID=${BANKID}"
+        commentaire "Recherche du fichier chiffré dans ${REP_BANK}"
+
+        if [ ! -d "${REP_BANK}" ]
+        then
+            commentaire "ERREUR : répertoire introuvable : ${REP_BANK}"
+            RC=23
+            continue
+        fi
+
+        FICHIER=$(find "${REP_BANK}" \
+            -maxdepth 1 \
+            -type f \
+            -name "extract_${BANKID}_*.zip.p7m" \
+            -print | sort | tail -1)
+
+        if [ -z "${FICHIER}" ]
+        then
+            commentaire "ERREUR : aucun fichier chiffré trouvé pour ${BANKID}"
+            RC=23
+            continue
+        fi
+
+        if [ ! -s "${FICHIER}" ]
+        then
+            commentaire "ERREUR : fichier absent ou vide : ${FICHIER}"
+            RC=23
+            continue
+        fi
+
+        commentaire "Envoi CFT du fichier ${FICHIER}"
+        commentaire "IDF utilisé : ${IDF}"
+
+        "${CFT_DIR}/${SCRIPT_CFT}" \
+            --idf="${IDF}" \
+            --appli_file="${FICHIER}" \
+            --cft_dir="${PASSERELLE}:Appli/NXDYD"
+
+        RETOUR=$?
+
+        if [ ${RETOUR} -ne 0 ]
+        then
+            commentaire "ERREUR transfert CFT du fichier ${FICHIER} pour ${BANKID} (Code=${RETOUR})"
+            RC=23
+            continue
+        fi
+
+        commentaire "Transfert CFT réussi pour ${BANKID} : ${FICHIER}"
+
+        # À activer uniquement après validation complète de l’envoi.
+        # rm -f "${FICHIER}"
+        # RETOUR=$?
+        #
+        # if [ ${RETOUR} -ne 0 ]
+        # then
+        #     commentaire "ERREUR suppression de ${FICHIER} (Code=${RETOUR})"
+        #     RC=23
+        # fi
+    done
+
+    return ${RC}
+}

@@ -1,0 +1,7 @@
+openssl cms -encrypt \
+    -binary \
+    -aes256 \
+    -in test.txt \
+    -out test.p7m \
+    -outform DER \
+    certificate_orion.pem

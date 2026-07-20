@@ -1,0 +1,65 @@
+job()
+{
+    RC=0
+
+    if [ ! -r "${CERTIFICATE_PATH}" ]
+    then
+        echo "ERREUR : certificat introuvable ou illisible : ${CERTIFICATE_PATH}"
+        return 23
+    fi
+
+    for BANKID in ${BANKIDS}
+    do
+        REP_BANK="${REP_TRANS_OUT}/${BANKID}"
+
+        echo "Recherche du ZIP dans ${REP_BANK}"
+
+        ZIP_FILE=$(find "${REP_BANK}" \
+            -maxdepth 1 \
+            -type f \
+            -name "extract_${BANKID}_*.zip" \
+            -print | sort | tail -1)
+
+        if [ -z "${ZIP_FILE}" ]
+        then
+            echo "ERREUR : aucun fichier extract_${BANKID}_*.zip trouvé"
+            RC=23
+            continue
+        fi
+
+        echo "ZIP trouvé : ${ZIP_FILE}"
+
+        ENCRYPTED_FILE="${ZIP_FILE}.p7m"
+
+        rm -f "${ENCRYPTED_FILE}"
+
+        openssl cms -encrypt \
+            -binary \
+            -aes256 \
+            -in "${ZIP_FILE}" \
+            -out "${ENCRYPTED_FILE}" \
+            -outform DER \
+            "${CERTIFICATE_PATH}"
+
+        RETOUR=$?
+
+        if [ ${RETOUR} -ne 0 ]
+        then
+            echo "ERREUR chiffrement X.509 OpenSSL pour ${ZIP_FILE}"
+            RC=23
+            rm -f "${ENCRYPTED_FILE}"
+            continue
+        fi
+
+        if [ ! -s "${ENCRYPTED_FILE}" ]
+        then
+            echo "ERREUR : fichier chiffré vide ou non créé : ${ENCRYPTED_FILE}"
+            RC=23
+            continue
+        fi
+
+        echo "Fichier chiffré créé : ${ENCRYPTED_FILE}"
+    done
+
+    return ${RC}
+}

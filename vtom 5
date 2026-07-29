@@ -1,0 +1,13 @@
+commentaire "Archivage de ${FICHIER} dans ${REP_ARC_OUT}"
+
+mv "${FICHIER}" "${REP_ARC_OUT}/"
+
+RETOUR=$?
+
+if [ ${RETOUR} -ne 0 ]
+then
+    commentaire "Erreur lors de l'archivage de ${FICHIER} dans ${REP_ARC_OUT}"
+    return ${RETOUR}
+fi
+
+commentaire "Archivage OK de ${FICHIER}"

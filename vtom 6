@@ -1,0 +1,36 @@
+function job
+{
+    REP_SOURCE="${REP_TRANS_OUT}/${BANKIDS}"
+    REP_DEST="${REP_ARC_OUT}/${BANKIDS}"
+    FICHIER="extract_${BANKIDS}_*.zip"
+
+    commentaire "Archivage de ${FICHIER} de ${REP_SOURCE} vers ${REP_DEST}"
+
+    if [ ! -d "${REP_SOURCE}" ]; then
+        commentaire "Le répertoire source ${REP_SOURCE} n'existe pas"
+        return 1
+    fi
+
+    if [ ! -d "${REP_DEST}" ]; then
+        commentaire "Le répertoire destination ${REP_DEST} n'existe pas"
+        return 1
+    fi
+
+    cd "${REP_SOURCE}" || return 1
+
+    if ! ls ${FICHIER} >/dev/null 2>&1; then
+        commentaire "Aucun fichier correspondant à ${FICHIER} dans ${REP_SOURCE}"
+        return 1
+    fi
+
+    mv ${FICHIER} "${REP_DEST}/"
+    RETOUR=$?
+
+    if [ ${RETOUR} -ne 0 ]; then
+        commentaire "Erreur lors de l'archivage de ${FICHIER} dans ${REP_DEST}"
+        return ${RETOUR}
+    fi
+
+    commentaire "Archivage OK de ${FICHIER}"
+    return 0
+}

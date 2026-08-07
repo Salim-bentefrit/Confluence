@@ -1,23 +1,23 @@
-if [ -s ${FILE} ]
-then
-    cp ${FILE} ${REP_TRAIT_IN}/
-    RETOUR=$?
+			if [ -s ${FILE} ]
+			then
+				cp ${FILE} ${REP_TRAIT_IN}/
+				RETOUR=$?
 
-    if [ $RETOUR -ne 0 ]
-    then
-        commentaire "Erreur ${RETOUR} lors de la copie de ${FILE} dans ${REP_TRAIT_IN}"
-        return 23
-    else
-        commentaire "Copie de ${FILE} dans ${REP_TRAIT_IN}"
+				if [ $RETOUR -ne 0 ]
+				then
+					commentaire "Erreur ${RETOUR} lors de la copie de ${FILE} dans ${REP_TRAIT_IN}"
+					return 23
+				else
+					commentaire "Copie de ${FILE} dans ${REP_TRAIT_IN}"
 
-        gzip ${REP_TRANS_IN}/${FILE}
-        mv ${REP_TRANS_IN}/${FILE}.gz ${REP_ARC_IN}/
+					gzip ${REP_TRANS_IN}/${FILE}
+					mv ${REP_TRANS_IN}/${FILE}.gz ${REP_ARC_IN}/
+					commentaire "Archivage de ${FILE}.gz dans ${REP_ARC_IN}"
 
-        commentaire "Archivage de ${FILE}.gz dans ${REP_ARC_IN}"
-        break
-    fi
-else
-    gzip ${REP_TRANS_IN}/${FILE}
-    mv ${REP_TRANS_IN}/${FILE}.gz ${REP_ARC_IN}/
-    break
-fi
+					break
+				fi
+			else
+				gzip ${REP_TRANS_IN}/${FILE}
+				mv ${REP_TRANS_IN}/${FILE}.gz ${REP_ARC_IN}/
+				break
+			fi

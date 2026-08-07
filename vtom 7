@@ -1,3 +1,14 @@
+function job
+{
+	commentaire "Positionnement dans le repertoire ${REP_TRANS_IN}"
+	cd ${REP_TRANS_IN}
+	typeset -i COMPTEUR=0
+
+	if [ "`ls -tr ${FICHIER} 2>/dev/null | wc -l`" -ge 1 ]
+	then
+		for FILE in `ls -tr ${FICHIER}`
+		do
+			# Test si fichier non vide
 			if [ -s ${FILE} ]
 			then
 				cp ${FILE} ${REP_TRAIT_IN}/
@@ -21,3 +32,10 @@
 				mv ${REP_TRANS_IN}/${FILE}.gz ${REP_ARC_IN}/
 				break
 			fi
+		done
+	else
+		commentaire "Il y a aucun fichier a traiter"
+	fi
+
+	return $RETOUR
+}

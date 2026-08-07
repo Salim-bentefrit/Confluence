@@ -1,0 +1,19 @@
+if [ -s "${FILE}" ]
+then
+    cp "${FILE}" "${REP_TRAIT_IN}/"
+    RETOUR=$?
+
+    if [ $RETOUR -ne 0 ]
+    then
+        commentaire "Erreur ${RETOUR} lors de la copie de ${FILE}"
+        return 23
+    else
+        commentaire "Copie de ${FILE} dans ${REP_TRAIT_IN}"
+
+        gzip "${FILE}"
+        mv "${FILE}.gz" "${REP_ARC_IN}/"
+
+        commentaire "Archivage de ${FILE}.gz dans ${REP_ARC_IN}"
+        break
+    fi
+fi

@@ -1,0 +1,49 @@
+function job
+{
+    RUN_JOB=$APP_HOME/nps-dzv-batch-kraken/scripts/runJob.sh
+    JAVA_PROG=reject-wero-file
+    PARAMETRES="$JAVA_PROG"
+
+    # pattern des fichiers a trouver
+    PATTERN="*_restitution.txt"
+
+    commentaire "Lancement de ${JOB}"
+
+    cd "$REP_TRAIT_IN" || return 1
+
+    # initialisation de NB_FIC
+    countFilesInCurrentDirectory "$PATTERN"
+
+    if (( NB_FIC > 0 ))
+    then
+        for FICHIER in $PATTERN
+        do
+            [ -f "$FICHIER" ] || continue
+
+            # Appel au script JAVA_PROG
+            runDzvProgramWithParametersAndInputFile \
+                "$RUN_JOB" \
+                "$PARAMETRES" \
+                "$FICHIER"
+
+            RETOUR=$?
+
+            if (( RETOUR != 0 ))
+            then
+                commentaire "ERREUR lors de l'execution du job (Code=$RETOUR), fichier en erreur : $FICHIER"
+                return 23
+            else
+                commentaire "Execution du job reussie pour le fichier : $FICHIER"
+            fi
+
+            if [ "$REPRISE" = "OFF" ]
+            then
+                break
+            fi
+        done
+    else
+        commentaire "Il n'y a aucun fichier a traiter"
+    fi
+
+    return 0
+}
